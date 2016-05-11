@@ -50,7 +50,7 @@ public class Ejecutable {
 		
 
 		public void escucharBotonPreguntas() {
-			System.out.println("holi");
+			System.out.println("holi--2");
 			principalServidor.getBtnPreguntas().addActionListener(
 					new ActionListener() {
 						public void actionPerformed(ActionEvent arg0) {
