@@ -6,107 +6,76 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class Cliente {
-	private Socket socket;
 	
+	/// Atributos
+	private Socket socket;
 	private DataInputStream entrada;
 	private DataOutputStream salida;
-	
-	
 	private String chat;
 	
-	// ---------------------------------------------------------------------
-	// Constructor
-	// ---------------------------------------------------------------------
-
-	public Cliente(Socket socket,DataInputStream entrada, DataOutputStream salida)
-	{
+	/// Constructor
+	public Cliente(Socket socket,DataInputStream entrada, DataOutputStream salida){
 		this.socket = socket;
-		
 		this.entrada = entrada;
 		this.salida = salida;
-
-		chat = "";
-		
+		chat = "";	
 	}
 	
-	// ---------------------------------------------------------------------
-	// Metodos
-	// ---------------------------------------------------------------------
-
-	public void escribirSocket(String escritura)
-	{
-		try {
-			salida.writeUTF(escritura);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+	/// Metodos
+	public void escribirSocket(String texto){
+		try{
+			salida.writeUTF(texto);
+		} 
+		catch (IOException e){
 			e.printStackTrace();
 		}
 	}
 	
-	public String leerSocket()
-	{
-		String resultado = "";
-		
-		try {
-			resultado = entrada.readUTF();
-		} catch (IOException e) {
+	public String leerSocket(){
+		String texto = "";
+		try{
+			texto = entrada.readUTF();
+		} catch (IOException e){
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return resultado;
+		return texto;
 	}
 	
-	public void cerrarSocket()
-	{
-		try {
+	public void cerrarSocket(){
+		try{
 			entrada.close();
 			salida.close();
 			socket.close();
-		} catch (IOException e) {
+		} 
+		catch (IOException e){
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public void run() {
-		// TODO Auto-generated method stub
-		escucharLinea1();
-	}
-	// ---------------------------------------------------------------------
-	// Protocolos de Linea 1
-	// ---------------------------------------------------------------------
-
-	public void responderLinea1(String respuesta)
-	{
-		chat+="Servidor: "+respuesta+ "\n";
-		escribirSocket(respuesta);
-		
-	}
-	public boolean escucharLinea1()
+	public boolean escucharChat()
 	{
 		String txtRcpt = leerSocket();
-		
-		boolean resultado = (txtRcpt.equals("terminar"))?true:false;
-		
-		chat = (resultado)?"El cliente dejo la conversacion!":chat +"Cliente : "+txtRcpt+ "\n";
-		
-		if(resultado)
-		{
+		boolean finalizar = (txtRcpt.equals("terminar"))?true:false;
+		chat = (finalizar)?"El cliente dejo la conversacion.":chat +"Cliente : "+txtRcpt+ "\n";
+		if(finalizar){
 			cerrarSocket();
 		}
-		
-		return resultado;
+		return finalizar;
 	}
 	
+	public void responderChat(String texto)
+	{
+		chat+="Servidor: "+texto+ "\n";
+		escribirSocket(texto);
+		
+	}
 	
-	// ---------------------------------------------------------------------
-	// Gets and Sets
-	// ---------------------------------------------------------------------
-
-	
-
-	
+	public void run(){
+		// TODO Auto-generated method stub
+		escucharChat();
+	}
 	
 	public String getChat() {
 		return chat;
@@ -114,12 +83,6 @@ public class Cliente {
 
 	public void setChat(String chat) {
 		this.chat = chat;
-	}
-
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return chat;
 	}
 
 	public Socket getSocket() {

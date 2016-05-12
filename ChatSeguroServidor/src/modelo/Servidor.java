@@ -10,48 +10,29 @@ import java.util.ArrayList;
 import control.Ejecutable;
 
 public class Servidor {
-	public final static int PUERTO = 3000;
+	
+	/// Constantes
 	public final static String IP = "localhost";
+	public final static int PUERTO = 3000;
 	
-	// ---------------------------------------------------------------------
-	// Atributos
-	// ---------------------------------------------------------------------
-
+	/// Atributos
 	private ServerSocket server;
-	private int clienteActual;
-	private boolean salirChat;
-	
-	private ArrayList<Cliente> lineaAtencion1;
-	
+	private ArrayList<Cliente> clientes;
 	private HiloConector hiloLogin;
-	
 
-	// ---------------------------------------------------------------------
-	// Constructor
-	// ---------------------------------------------------------------------
-
-	public Servidor(Ejecutable ejecutable)
-	{
-		clienteActual = -1;
-		lineaAtencion1 = new ArrayList<Cliente>();
-		
-		hiloLogin = new HiloConector(this,ejecutable);
-		Thread hilo = new Thread(hiloLogin);
-		
-		salirChat = true;
-		
-		try 
-		{
+	/// Constructor
+	public Servidor(Ejecutable ejecutable){
+		try{
 			server = new ServerSocket(PUERTO);
 		} 
-		catch (IOException e) 
-		{
+		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		clientes = new ArrayList<Cliente>();
+		hiloLogin = new HiloConector(this,ejecutable);
+		Thread hilo = new Thread(hiloLogin);
 		hilo.start();
-
 	}
 	// ---------------------------------------------------------------------
 	// Metodos
@@ -59,16 +40,8 @@ public class Servidor {
 
 	public void agregarEstudianteLinea1(Cliente estudiante)
 	{
-		lineaAtencion1.add(estudiante);
+		clientes.add(estudiante);
 	}
-	
-	
-	
-	
-	// ---------------------------------------------------------------------
-	// Gets and Sets
-	// ---------------------------------------------------------------------
-	
 
 	public ServerSocket getServer() {
 		return server;
@@ -78,19 +51,13 @@ public class Servidor {
 		this.server = server;
 	}
 
-	public ArrayList<Cliente> getLineaAtencion1() {
-		return lineaAtencion1;
+	public ArrayList<Cliente> getClientes() {
+		return clientes;
 	}
 
-	public void setLineaAtencion1(ArrayList<Cliente> lineaAtencion1) {
-		this.lineaAtencion1 = lineaAtencion1;
+	public void setClientes(ArrayList<Cliente> clientes) {
+		this.clientes = clientes;
 	}
 
 	
-	
-	
-	
-	// -------------------------------------------------------
-	// Main
-	// -------------------------------------------------------
 }

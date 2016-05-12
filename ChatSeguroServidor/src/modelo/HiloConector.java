@@ -9,24 +9,20 @@ import control.Ejecutable;
 import control.HiloEscucharChat;
 
 public class HiloConector implements Runnable {
-	private Servidor server;
-	private boolean close;
-	private Ejecutable exe;
 	
-	// -------------------------------------------------------------------------
-	// Constructor
-	// ------------------------------------------------------------------------
-
-	public HiloConector (Servidor server, Ejecutable exe) {
-		// TODO Auto-generated constructor stub
+	/// Atributos
+	private Servidor server;
+	private Ejecutable exe;
+	private boolean close;
+	
+	/// Constructor
+	public HiloConector (Servidor server, Ejecutable exe){
 		this.server = server;
-		close = false;
 		this.exe = exe;
+		close = false;
 	}
-	// -------------------------------------------------------------------------
-	// Metodos
-	// ------------------------------------------------------------------------
-
+	
+	///Metodos
 	public void connect() 
 	{
 		while(!close)
@@ -41,12 +37,11 @@ public class HiloConector implements Runnable {
 					salida.writeUTF("Ok");
 				}
 				recibirCliente= entrada.readUTF();
-				if(recibirCliente.equals("login")){
+				if(recibirCliente.equals("iniciar")){
 						salida.writeUTF("Ok");
 				}
-				System.out.println("termine de logear");
-				String opcion = entrada.readUTF();
-				if(opcion.equals("chat"))
+				String txt = entrada.readUTF();
+				if(txt.equals("chat"))
 				{
 					Cliente client = new Cliente(actualSock, entrada, salida);
 					server.agregarEstudianteLinea1(client);

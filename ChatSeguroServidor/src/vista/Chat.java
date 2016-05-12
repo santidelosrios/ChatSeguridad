@@ -9,15 +9,15 @@ import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
 
 public class Chat extends JFrame{
-	//
-	//-------------Atributos---------------
-	//
+	
+	/// Atributos
 	private JButton btnEnviar;
 	private JTextField textFieldMensaje;
 	private JTextPane textPane;
 	private JScrollPane scrollPaneChat;
 	private JPanel contentPane;
 	
+	/// Constructor
 	public Chat() {
 	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	setBounds(100, 80, 560, 486);
@@ -29,16 +29,13 @@ public class Chat extends JFrame{
 	btnEnviar = new JButton("Enviar");
 	btnEnviar.setBounds(348, 374, 92, 23);
 	add(btnEnviar);
-	
 	textFieldMensaje = new JTextField();
 	textFieldMensaje.setBounds(77, 311, 363, 58);
 	add(textFieldMensaje);
 	textFieldMensaje.setColumns(10);
-	
 	scrollPaneChat = new JScrollPane();
 	scrollPaneChat.setBounds(77, 40, 363, 250);
 	add(scrollPaneChat);
-	
 	textPane = new JTextPane();
 	scrollPaneChat.setViewportView(textPane);
 	}
