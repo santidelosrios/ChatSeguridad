@@ -11,21 +11,17 @@ import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
 
 public class Chat extends JFrame{
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 1L;
-	//
-	//------------------Atributos------------------
-	//
+	
+	/// Atributos
 	private JPanel contentPane;
 	private JButton btnEnviar;
 	private TextField textFieldMensaje;
 	private JTextPane textPane;
 	private JScrollPane scrollPaneChat;
-	//
-	//--------------------Constructor-------------------
-	//
+	
+	/// Constructor
 	public Chat() {
 		setResizable(false);
 		setTitle("Chat Seguro Cliente");
@@ -47,9 +43,7 @@ public class Chat extends JFrame{
 		textPane = new JTextPane();
 		scrollPaneChat.setViewportView(textPane);
 	}
-	//
-	// GETTERS AND SETTERS
-	//
+	
 	public Container getContentPane() {
 		return contentPane;
 	}

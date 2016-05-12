@@ -8,21 +8,14 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 public class Principal extends JFrame{
-	//
-	//------------------Atributos-------------------
-	//
 	
-	/**
-	 * 
-	 */
+	/// Atributos
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JButton btnChat;
 	public Chat chat;
 
-	//------------------Constructor-------------------
-	
-	
+	/// Constructor
 	public Principal() {
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -38,22 +31,19 @@ public class Principal extends JFrame{
 		contentPane.add(btnChat);
 	}
 
-	public void actualizarChat(String Mensajes)
-	{
+	public void actualizarChat(String Mensajes){
 		chat.getTextPane().setText(Mensajes);
 	}
 	
-	//
-	// GETTERS AND SETTERS
-	//
-	
-	public Container getContentPane() {
+	public Container getContentPane(){
 		return contentPane;
 	}
-	public JButton getBtnChat() {
+	
+	public JButton getBtnChat(){
 		return btnChat;
 	}
-	public Chat getChat() {
+	
+	public Chat getChat(){
 		return chat;
 	}
 }
