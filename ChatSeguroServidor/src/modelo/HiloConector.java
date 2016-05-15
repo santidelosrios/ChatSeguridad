@@ -4,6 +4,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.KeyGenerator;
 
 import control.Ejecutable;
 import control.HiloEscucharChat;
@@ -58,6 +62,10 @@ public class HiloConector implements Runnable {
 			}
 			
 		}
+	}
+	
+	public void generateKeyPair() {
+		
 	}
 	
 	public void close()

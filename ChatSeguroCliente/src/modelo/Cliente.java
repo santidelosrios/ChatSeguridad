@@ -3,8 +3,16 @@ package modelo;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+
+import javax.crypto.interfaces.DHPublicKey;
+import javax.crypto.spec.DHParameterSpec;
 
 public class Cliente {
 	
@@ -109,6 +117,33 @@ public class Cliente {
 			cerrarSocketTCP();
 		}
 		return coneccion;
+	}
+	public void generateKeyPair() {
+		String algorithm = "DH"; 
+		try {
+			//Se genera una signatura de 1024-bits para el algoritmo Diffie Hellman -- código adaptado de: https://examples.javacodegeeks.com/core-java/security/diffie-helman-key-pair-generation-and-parameters/
+			KeyPairGenerator keyG = KeyPairGenerator.getInstance(algorithm);
+			keyG.initialize(1024);
+			KeyPair pair = keyG.generateKeyPair();
+			//Se va a generar los parametros G,P y L -- código adaptado de: http://docstore.mik.ua/orelly/java-ent/security/ch13_07.htm
+			//Class dh = Class.forName("javax.crypto.spec.DHParameterSpec");
+			DHParameterSpec dhspecs = ((DHPublicKey) pair.getPublic()).getParams();
+			BigInteger g = dhspecs.getG();
+			BigInteger p = dhspecs.getP();
+			int l = dhspecs.getL();
+			//Se genera la clave publica del cliente
+			PublicKey pk = pair.getPublic(); 
+			byte[] clientKey = pk.getEncoded(); 
+			
+			
+		} catch (NoSuchAlgorithmException nsa) {
+			// TODO Auto-generated catch block
+			System.out.println("No existe el algoritmo");
+			nsa.printStackTrace();
+		} 
+		//catch (ClassNotFoundException cne){
+		//	System.out.println("No existe la clase");
+		//}
 	}
 	
 	public String getTextoEnviado() {
