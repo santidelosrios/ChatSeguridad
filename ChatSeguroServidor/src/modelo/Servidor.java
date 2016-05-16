@@ -14,9 +14,11 @@ public class Servidor {
 	/// Constantes
 	public final static String IP = "localhost";
 	public final static int PUERTO = 3000;
+	public final static int PUERTO_KEY = 4000;
 	
 	/// Atributos
 	private ServerSocket server;
+	private ServerSocket serverKey;
 	private ArrayList<Cliente> clientes;
 	private HiloConector hiloLogin;
 
@@ -24,6 +26,7 @@ public class Servidor {
 	public Servidor(Ejecutable ejecutable){
 		try{
 			server = new ServerSocket(PUERTO);
+			serverKey = new ServerSocket(PUERTO_KEY);
 		} 
 		catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -45,6 +48,9 @@ public class Servidor {
 
 	public ServerSocket getServer() {
 		return server;
+	}
+	public ServerSocket getServerKey(){
+		return serverKey; 
 	}
 
 	public void setServer(ServerSocket server) {

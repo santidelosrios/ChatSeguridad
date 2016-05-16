@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -30,12 +31,16 @@ public class HiloConector implements Runnable {
 	private Servidor server;
 	private Ejecutable exe;
 	private boolean close;
+	private PrivateKey ppk; 
+	private SecretKey sk; 
 	
 	/// Constructor
 	public HiloConector (Servidor server, Ejecutable exe){
 		this.server = server;
 		this.exe = exe;
 		close = false;
+		ppk = null; 
+		sk = null; 
 	}
 	
 	///Metodos
@@ -46,10 +51,12 @@ public class HiloConector implements Runnable {
 			try 
 			{
 				Socket actualSock = server.getServer().accept();
+				Socket sockKey = server.getServerKey().accept();
 				DataInputStream entrada = new DataInputStream(actualSock.getInputStream());
 				DataOutputStream salida = new DataOutputStream(actualSock.getOutputStream());
 				String recibirCliente = entrada.readUTF();
 				if(recibirCliente.equals("Hola")){
+					doDiffieHellman(entrada, salida,sockKey);
 					salida.writeUTF("Ok");
 					
 				}
@@ -77,21 +84,35 @@ public class HiloConector implements Runnable {
 		}
 	}
 	
-	public void doDiffieHellman(DataInputStream entrada, DataOutputStream salida) throws IOException {
+	public void doDiffieHellman(DataInputStream entrada, DataOutputStream salida, Socket actualSock) throws IOException {
+		
 		//Se reciben los parametros G,P y L del cliente
+		
 		String paramMessage = entrada.readUTF();
 		System.out.println("ParamMessageS:" + paramMessage);
+		
 		String [] params = paramMessage.split(";");
+		
 		String sg = params[0];
 		String sp = params[1];
 		String sl = params[2];
+		
 		BigInteger g = new BigInteger(sg);
 		BigInteger p = new BigInteger(sp);
 		int l = new Integer(sl);
+		
 		//Se recibe la clave publica del cliente
-		String publicKey = entrada.readUTF();
-		System.out.println("PublicKey del cliente: " + publicKey);
-		byte [] clientKey = publicKey.getBytes();
+		byte[] lenb = new byte[4];
+		actualSock.getInputStream().read(lenb, 0,4);
+		ByteBuffer bb = ByteBuffer.wrap(lenb);
+		int len = bb.getInt();
+		//String publicKey = entrada.readUTF();
+		//System.out.println("PublicKey del cliente: " + );
+		byte [] clientKey = new byte[len];
+		actualSock.getInputStream().read(clientKey);
+		System.out.println("public key dle cliente en bytes: " + clientKey);
+		
+		
 		//Se procede a crear la llave publica y privada del servidor
 		String algorithm = "DH";
 		try {
@@ -100,20 +121,33 @@ public class HiloConector implements Runnable {
 			keyG.initialize(dhSpec);
 			KeyPair pair = keyG.generateKeyPair();
 			PublicKey pk = pair.getPublic(); 
+			
 			byte [] bpk = pk.getEncoded();
 			String spk = bpk.toString();
+			System.out.println("Clave publica servidor: "  + spk);
+			
+			
 			//Se envia la llave publica al cliente
-			salida.writeUTF(spk);
+			ByteBuffer bb1 = ByteBuffer.allocate(4);
+			bb1.putInt(bpk.length);
+			actualSock.getOutputStream().write(bb1.array());
+			actualSock.getOutputStream().write(bpk);
+			actualSock.getOutputStream().flush();
+			//salida.writeUTF(spk);
+			
+			
 			//Se procede con la negociacion de clave y la generacion de la clave secreta
 			KeyAgreement ka = KeyAgreement.getInstance(algorithm);
-			PrivateKey ppk = pair.getPrivate();
+			ppk = pair.getPrivate();
 			ka.init(ppk);
 			KeyFactory kf = KeyFactory.getInstance(algorithm);
 			X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(clientKey);
 			PublicKey cpk = kf.generatePublic(x509EncodedKeySpec);
 			ka.doPhase(cpk, true);
 			
-			SecretKey sk = ka.generateSecret("AES");
+			sk = ka.generateSecret("AES");
+			
+			System.out.println("clave secreta: " + sk.getEncoded());
 			
 			
 		} catch (NoSuchAlgorithmException e) {

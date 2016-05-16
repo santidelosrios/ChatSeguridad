@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -20,15 +21,18 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
+import javax.xml.ws.handler.MessageContext.Scope;
 
 public class Cliente {
 	
 	/// Constantes
 	public static final String IP = "localhost";
 	public final static int PUERTO = 3000;
+	public final static int PUERTO_KEY = 4000; 
 	
 	/// Atributos
 	public static Socket socket;
+	public static Socket socketKey; 
 	private DataOutputStream salidaTCP;
 	private DataInputStream entradaTCP;
 	public String chat;
@@ -36,6 +40,8 @@ public class Cliente {
 	public String textoRecibido;
 	public String ack;
 	public boolean sigueChat;
+	private PrivateKey ppk;
+	private SecretKey sk; 
 
 	/// Constructor
 	public Cliente() {
@@ -43,6 +49,8 @@ public class Cliente {
 		textoRecibido = "";
 		textoEnviado = "";
 		chat = "";
+		ppk = null;
+		sk = null; 
 		
 	}
 	
@@ -50,6 +58,7 @@ public class Cliente {
 	public void abrirSocket(){
 		try {
 			socket = new Socket(IP, PUERTO);
+			socketKey = new Socket(IP,PUERTO_KEY);
 			salidaTCP = new DataOutputStream(socket.getOutputStream());
 			entradaTCP = new DataInputStream(socket.getInputStream());
 		} catch (UnknownHostException e){
@@ -133,48 +142,83 @@ public class Cliente {
 			KeyPairGenerator keyG = KeyPairGenerator.getInstance(algorithm);
 			keyG.initialize(1024);
 			KeyPair pair = keyG.generateKeyPair();
+			
 			//Se va a generar los parametros G,P y L y se envian al servidor -- código adaptado de: http://docstore.mik.ua/orelly/java-ent/security/ch13_07.htm
-			//Class dh = Class.forName("javax.crypto.spec.DHParameterSpec");
+			
+			Class dh = Class.forName("javax.crypto.spec.DHParameterSpec");
 			DHParameterSpec dhspecs = ((DHPublicKey) pair.getPublic()).getParams();
+			
 			BigInteger g = dhspecs.getG();
 			BigInteger p = dhspecs.getP();
 			int l = dhspecs.getL();
+			
 			String sg = g.toString();
 			String sp = p.toString();
 			String sl = String.valueOf(l);
-			String paramMessage = sp + ";" + sp + ";" + sl;
+			String paramMessage = sg + ";" + sp + ";" + sl;
+			
 			System.out.println("ParamMessageC:" + paramMessage);
 			escribirTCP(paramMessage);
+			salidaTCP.flush();
+			
 			//Se genera la clave publica del cliente y se envia al servidor
+			
 			PublicKey pk = pair.getPublic(); 
 			byte[] clientKey = pk.getEncoded(); 
-			escribirTCP(clientKey.toString());
+			System.out.println("public key cliente en bytes: " + clientKey);
+			System.out.println("formato de la clave: " + pk.getFormat());
+			
+			ByteBuffer bb = ByteBuffer.allocate(4);
+			System.out.println(clientKey.length);
+			bb.putInt(clientKey.length);
+			socketKey.getOutputStream().write(bb.array());
+			socketKey.getOutputStream().write(clientKey);
+			socketKey.getOutputStream().flush();
+			//escribirTCP(clientKey.toString());
 			System.out.println("Public KeyC: " + clientKey.toString());
+			
+			
 			//Se procede a hacer la negociacion de clave
 			KeyAgreement ka = KeyAgreement.getInstance(algorithm);
-			PrivateKey ppk = pair.getPrivate();
+			ppk = pair.getPrivate();
 			ka.init(ppk);
+			
+			System.out.println("llega aqui?");
 			//Ahora se debe leer la clave publica del servidor para generar la llave secreta
-			String spk = lecturaTCP();
-			byte[] bspk = spk.getBytes();
+			byte[] lenb = new byte[4];
+			socketKey.getInputStream().read(lenb, 0,4);
+			ByteBuffer bb1 = ByteBuffer.wrap(lenb);
+			int len = bb1.getInt();
+			//String publicKey = entrada.readUTF();
+			//System.out.println("PublicKey del cliente: " + );
+			byte [] serverKey = new byte[len];
+			socketKey.getInputStream().read(serverKey);
+			//System.out.println("clave publica servidor: " + spk);
+			System.out.println("antes del key factory?");
 			KeyFactory kf = KeyFactory.getInstance(algorithm);
-			X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(bspk);
+			X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(serverKey);
 			PublicKey spublickey = kf.generatePublic(x509EncodedKeySpec);
 			ka.doPhase(spublickey, true);
-			SecretKey sk = ka.generateSecret("AES");
+			
+			sk = ka.generateSecret("AES");
+			
+			System.out.println("clave secreta: " + sk.getEncoded());
 			
 		} catch (NoSuchAlgorithmException nsa) {
 			// TODO Auto-generated catch block
 			System.out.println("No existe el algoritmo");
 			nsa.printStackTrace();
 		} 
-		//catch (ClassNotFoundException cne){
-		//	System.out.println("No existe la clase");
-		//}
+		catch (ClassNotFoundException cne){
+			System.out.println("No existe la clase");
+		}
 		catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
